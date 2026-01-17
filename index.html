@@ -1,23 +1,40 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mon Wiki</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mon Wiki</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <header>
-        <h1>Mon Wiki</h1>
-        <div class="search-container">
-            <input type="text" id="search" placeholder="Rechercher un article...">
+  <header class="site-header">
+    <div class="container">
+      <h1 class="site-title">Mon Wiki</h1>
+      <p class="site-sub">Un petit wiki local avec suggestions Wikipédia</p>
+      <div class="search-container">
+        <label for="search" class="visually-hidden">Rechercher un article</label>
+        <input type="text" id="search" placeholder="Rechercher un article..." autocomplete="off" />
+        <!-- Le script crée #suggestions s'il n'existe pas, mais on le place ici pour sémantique -->
+        <div class="suggestions-wrapper">
+          <ul id="suggestions" class="suggestions-list" role="listbox" aria-label="Suggestions"></ul>
         </div>
-    </header>
-    <main>
-        <div class="articles-container" id="articles">
-            <!-- Les articles seront affichés ici -->
-        </div>
-    </main>
-    <script src="script.js"></script>
+      </div>
+    </div>
+  </header>
+
+  <main class="container main-content">
+    <section class="articles-container" id="articles">
+      <!-- Les cartes d'articles seront affichées ici -->
+      <div class="empty-message">
+        Tapez dans la barre de recherche pour voir des suggestions Wikipédia.
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">© Mon Wiki — Suggestions fournies par Wikipédia (fr)</div>
+  </footer>
+
+  <script src="script.js"></script>
 </body>
 </html>
