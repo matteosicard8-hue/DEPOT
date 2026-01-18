@@ -53,7 +53,7 @@ async function fetchSuggestions(query) {
     return;
   }
   try {
-    const url = 'https://fr.wikipedia.org/w/api.php?action=opensearch&format=json&limit=8&origin=*&search=' + encodeURIComponent(query);
+    const url = 'https://fr.wikipedia.org/w/api.php?action=opensearch&format=json&limit=8&origin=*\n&search=' + encodeURIComponent(query);
     const res = await fetch(url);
     const data = await res.json();
     const titles = data[1] || [];
@@ -109,5 +109,4 @@ document.addEventListener('click', (e) => {
 // accessibility: allow focus/blur
 searchInput.addEventListener('focus', () => {
   if (suggestions.length) suggestionsEl.style.display = 'block';
-};
-
+});
