@@ -1,6 +1,11 @@
 // script.js
 const searchInput = document.getElementById('search');
 const suggestionsEl = document.getElementById('suggestions');
+const articlesContainer = document.getElementById('articles');
+const articleDetail = document.getElementById('articleDetail');
+const backBtn = document.getElementById('backBtn');
+const detailContent = document.getElementById('detailContent');
+
 let activeIndex = -1;
 let suggestions = [];
 let debounceTimer = null;
@@ -24,13 +29,15 @@ function renderSuggestions(items) {
     li.className = 'suggestion-item';
     li.setAttribute('role', 'option');
     li.setAttribute('data-url', it.url);
+    li.setAttribute('data-title', it.title);
     li.innerHTML = `
       <div class="suggestion-title">${it.title}</div>
       <div class="suggestion-desc">${it.description || ''}</div>
     `;
     li.addEventListener('click', () => {
-      window.open(it.url, '_blank');
+      displayArticle(it.title, it.url);
       clearSuggestions();
+      searchInput.value = '';
     });
     suggestionsEl.appendChild(li);
   });
@@ -53,7 +60,7 @@ async function fetchSuggestions(query) {
     return;
   }
   try {
-    const url = 'https://fr.wikipedia.org/w/api.php?action=opensearch&format=json&limit=8&origin=*\n&search=' + encodeURIComponent(query);
+    const url = 'https://fr.wikipedia.org/w/api.php?action=opensearch&format=json&limit=8&origin=*\u0026search=' + encodeURIComponent(query);
     const res = await fetch(url);
     const data = await res.json();
     const titles = data[1] || [];
@@ -70,6 +77,42 @@ async function fetchSuggestions(query) {
 function debounceFetch(q) {
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => fetchSuggestions(q), 250);
+}
+
+async function fetchArticleContent(title) {
+  try {
+    const url = `https://fr.wikipedia.org/w/api.php?action=query&format=json&titles=${encodeURIComponent(title)}&prop=extracts&explaintext=false&origin=*`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const pages = data.query.pages;
+    const page = Object.values(pages)[0];
+    return page.extract || '<p>Contenu non disponible</p>';
+  } catch (err) {
+    console.error('Erreur fetch article:', err);
+    return '<p>Erreur lors du chargement de l\u0027article</p>';
+  }
+}
+
+async function displayArticle(title, wikipediaUrl) {
+  articlesContainer.style.display = 'none';
+  articleDetail.style.display = 'block';
+  detailContent.innerHTML = '<p style="text-align: center; color: #6b7280;">Chargement de l\u0027article...</p>';
+  
+  const content = await fetchArticleContent(title);
+  detailContent.innerHTML = `
+    <h1>${title}</h1>
+    ${content}
+    <p style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 0.9rem;">
+      Source: <a href="${wikipediaUrl}" target="_blank" style="color: #3057ff;">Wikipédia - ${title}</a>
+    </p>
+  `;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function goBackToSearch() {
+  articlesContainer.style.display = 'flex';
+  articleDetail.style.display = 'none';
+  detailContent.innerHTML = '';
 }
 
 searchInput.addEventListener('input', (e) => {
@@ -92,21 +135,21 @@ searchInput.addEventListener('keydown', (e) => {
     e.preventDefault();
     const idx = activeIndex >= 0 ? activeIndex : 0;
     const sel = items[idx];
-    if (sel) window.open(sel.getAttribute('data-url'), '_blank');
-    clearSuggestions();
+    if (sel) {
+      const title = sel.getAttribute('data-title');
+      const url = sel.getAttribute('data-url');
+      displayArticle(title, url);
+      clearSuggestions();
+    }
   } else if (e.key === 'Escape') {
     clearSuggestions();
   }
 });
 
-// close suggestions when clicking outside
 document.addEventListener('click', (e) => {
   if (!document.querySelector('.search-container').contains(e.target)) {
     clearSuggestions();
   }
 });
 
-// accessibility: allow focus/blur
-searchInput.addEventListener('focus', () => {
-  if (suggestions.length) suggestionsEl.style.display = 'block';
-});
+backBtn.addEventListener('click', goBackToSearch);
